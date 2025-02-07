@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using OtpAuthorizer.Endpoints;
 using OtpAuthorizer.Shared;
@@ -37,8 +38,17 @@ builder.Services.AddScoped<IOtpGeneratorDecorator>(sp =>
 
     throw new InvalidCastException();
 });
-builder.Services.AddAuthentication("X_Business_Id")
-    .AddScheme<AuthenticationSchemeOptions, BusinessIdAuthenticationHandler>("X_Business_Id", null);
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = "MultiAuth";
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+{
+    options.Authority = "idp.thisisnabi.dev";
+    options.Audience = "otp.thisisnabi.dev";
+}).AddScheme<AuthenticationSchemeOptions, BusinessIdAuthenticationHandler>("X_Business_Id", null);
+
 
 builder.Services.AddAuthorization(options =>
 {
@@ -53,7 +63,11 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
- 
+
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapGroup("otp/{channel}/{client}/")
    .MapOtpGeneratorEndpoint()
    .MapOtpVerifyEndpoint()
