@@ -112,13 +112,13 @@ public class BusinessIdAuthenticationHandler : AuthenticationHandler<Authenticat
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        if(!Request.Headers.TryGetValue(header_name, out var bussinesId) ||
-           !_businessIds.Contains(bussinesId.ToString()))
+        if(!Request.Headers.TryGetValue(header_name, out var businessId) ||
+           !_businessIds.Contains(businessId.ToString()))
         {
             return Task.FromResult(AuthenticateResult.Fail("Invalid business Id"));
         }
 
-        var claims = new[] { new Claim("business-id", bussinesId.ToString()) };
+        var claims = new[] { new Claim("business-id", businessId.ToString()) };
         var identity = new ClaimsIdentity(claims);
         var principal = new ClaimsPrincipal(identity);
         var ticket = new AuthenticationTicket(principal, Scheme.Name);
